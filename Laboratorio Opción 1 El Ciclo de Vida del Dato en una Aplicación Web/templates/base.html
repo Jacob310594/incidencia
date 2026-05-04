@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IncidenciaApp{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary:   #2563eb;
+            --primary-dark: #1d4ed8;
+            --success:   #16a34a;
+            --danger:    #dc2626;
+            --warning:   #d97706;
+            --surface:   #f8fafc;
+            --border:    #e2e8f0;
+            --text:      #1e293b;
+            --muted:     #64748b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--surface);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ── */
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.3px;
+        }
+        .navbar-brand span { color: #93c5fd; }
+
+        .nav-link {
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.45rem 0.85rem !important;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.12); }
+        .nav-link.active { background: rgba(255,255,255,0.18) !important; }
+
+        /* ── Main content ── */
+        main { flex: 1; }
+
+        /* ── Cards ── */
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+
+        /* ── Badges ── */
+        .badge { font-weight: 500; letter-spacing: 0.2px; }
+
+        /* ── Buttons ── */
+        .btn { font-weight: 500; border-radius: 8px; }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+        /* ── Footer ── */
+        footer {
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            padding: 1.25rem 0;
+            margin-top: auto;
+        }
+        footer a { color: #93c5fd; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── Flash alerts ── */
+        .alert { border-radius: 10px; font-size: 0.9rem; }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <!-- ── Navigation ── -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-shield-exclamation me-2"></i>Incidencia<span>App</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMenu">
+                <ul class="navbar-nav ms-auto gap-1 align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'index' %}active{% endif %}"
+                           href="{{ url_for('index') }}">
+                            <i class="bi bi-house me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'form_incidencia' %}active{% endif %}"
+                           href="{{ url_for('form_incidencia') }}">
+                            <i class="bi bi-plus-circle me-1"></i>Nueva Incidencia
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'dashboard' %}active{% endif %}"
+                           href="{{ url_for('dashboard') }}">
+                            <i class="bi bi-bar-chart-line me-1"></i>Dashboard
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Flash messages ── -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                        <i class="bi {{ 'bi-x-circle-fill' if category == 'error' else 'bi-check-circle-fill' }}"></i>
+                        <span>{{ message }}</span>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ── Page content ── -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer>
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <span><i class="bi bi-shield-exclamation me-1"></i><strong class="text-white">IncidenciaApp</strong> &mdash; Ciclo de Vida del Dato</span>
+            <span>
+                <a href="{{ url_for('index') }}">Inicio</a> &middot;
+                <a href="{{ url_for('form_incidencia') }}">Nueva Incidencia</a> &middot;
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

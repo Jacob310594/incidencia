@@ -1,126 +1,437 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Dashboard Gerencial</title>
-</head>
-<body class="container mt-5">
-    <h1>📊 Dashboard de Incidencias</h1>
-    
-    <!-- KPIs Oportunos -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
+{% extends "base.html" %}
+{% block title %}Dashboard — IncidenciaApp{% endblock %}
+
+{% block extra_styles %}
+    .dashboard-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        color: #fff;
+        padding: 2.5rem 0 2rem;
+    }
+    .dashboard-header h1 {
+        font-weight: 700;
+        letter-spacing: -0.4px;
+        font-size: 1.9rem;
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-card {
+        border-radius: 14px;
+        border: none;
+        padding: 1.4rem 1.5rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    .kpi-card::after {
+        content: '';
+        position: absolute;
+        right: -12px; bottom: -12px;
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+    }
+    .kpi-card .kpi-icon {
+        font-size: 1.6rem;
+        opacity: 0.9;
+        margin-bottom: 0.6rem;
+    }
+    .kpi-card .kpi-value {
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -1px;
+    }
+    .kpi-card .kpi-label {
+        font-size: 0.82rem;
+        opacity: 0.85;
+        margin-top: 0.3rem;
+    }
+    .kpi-danger  { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+    .kpi-warning { background: linear-gradient(135deg, #d97706, #b45309); }
+    .kpi-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .kpi-success { background: linear-gradient(135deg, #16a34a, #15803d); }
+
+    /* ── Filters ── */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+    }
+    .filter-bar .form-select, .filter-bar .form-control {
+        border-radius: 8px;
+        font-size: 0.88rem;
+        border: 1.5px solid var(--border);
+    }
+    .filter-bar .form-select:focus, .filter-bar .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    /* ── Table ── */
+    .incidents-table {
+        font-size: 0.88rem;
+    }
+    .incidents-table thead th {
+        background: #f8fafc;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border);
+        padding: 0.75rem 1rem;
+        white-space: nowrap;
+    }
+    .incidents-table tbody td {
+        padding: 0.85rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .incidents-table tbody tr:last-child td { border-bottom: none; }
+    .incidents-table tbody tr:hover { background: #f8fafc; }
+    .incidents-table tbody tr.row-critical { background: #fff5f5; }
+    .incidents-table tbody tr.row-critical:hover { background: #fee2e2; }
+
+    .badge-cat-a {
+        background: #fee2e2; color: #b91c1c;
+        border: 1px solid #fca5a5;
+        font-weight: 600; font-size: 0.75rem;
+        padding: 0.3rem 0.65rem; border-radius: 6px;
+    }
+    .badge-cat-b {
+        background: #fef9c3; color: #92400e;
+        border: 1px solid #fde68a;
+        font-weight: 600; font-size: 0.75rem;
+        padding: 0.3rem 0.65rem; border-radius: 6px;
+    }
+    .badge-pending {
+        background: #fef3c7; color: #92400e;
+        border: 1px solid #fde68a;
+        font-size: 0.75rem; padding: 0.3rem 0.65rem; border-radius: 6px;
+    }
+    .badge-resolved {
+        background: #dcfce7; color: #15803d;
+        border: 1px solid #86efac;
+        font-size: 0.75rem; padding: 0.3rem 0.65rem; border-radius: 6px;
+    }
+
+    .btn-resolve {
+        font-size: 0.78rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 6px;
+        border: 1.5px solid #16a34a;
+        color: #16a34a;
+        background: transparent;
+        font-weight: 500;
+        transition: background 0.15s, color 0.15s;
+    }
+    .btn-resolve:hover { background: #16a34a; color: #fff; }
+
+    /* ── Chart card ── */
+    .chart-card { border-radius: 14px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+    }
+    .empty-state i { font-size: 2.5rem; opacity: 0.4; margin-bottom: 0.75rem; }
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Dashboard Header ── -->
+<div class="dashboard-header">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1" style="opacity:0.7; font-size:0.82rem;">
+                    <a href="{{ url_for('index') }}" class="text-white text-decoration-none">Inicio</a>
+                    <i class="bi bi-chevron-right" style="font-size:0.7rem;"></i>
+                    <span>Dashboard</span>
+                </div>
+                <h1><i class="bi bi-speedometer2 me-2"></i>Dashboard Gerencial</h1>
+                <p class="mb-0" style="opacity:0.75; font-size:0.9rem;">
+                    Métricas en tiempo real del sistema de incidencias
+                </p>
+            </div>
+            <a href="{{ url_for('form_incidencia') }}" class="btn btn-light text-primary fw-semibold">
+                <i class="bi bi-plus-circle me-2"></i>Nueva Incidencia
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+
+    <!-- ── KPI Row ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-danger">
+                <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="kpi-value">{{ stats.pendientes_hoy }}</div>
+                <div class="kpi-label">Pendientes hoy</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-primary">
+                <div class="kpi-icon"><i class="bi bi-exclamation-octagon"></i></div>
+                <div class="kpi-value">{{ stats.total_criticas }}</div>
+                <div class="kpi-label">Críticas totales (Cat. A)</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-warning">
+                <div class="kpi-icon"><i class="bi bi-stopwatch"></i></div>
+                <div class="kpi-value">{{ stats.tiempo_promedio_hrs }}<span style="font-size:1.1rem;">h</span></div>
+                <div class="kpi-label">Tiempo promedio resolución</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-success">
+                <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="kpi-value">{{ incidencias | selectattr('estado', 'equalto', 'Resuelto') | list | length }}</div>
+                <div class="kpi-label">Total resueltas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Chart + Summary row ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card chart-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart me-2 text-primary"></i>Resumen Visual de KPIs</h6>
+                </div>
                 <div class="card-body">
-                    <h3 class="card-title">{{ stats.pendientes_hoy }}</h3>
-                    <p>🔴 Pendientes HOY</p>
+                    <canvas id="statsChart" height="120"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h3>{{ stats.tiempo_promedio_hrs }}h</h3>
-                    <p>⏱️ Tiempo Promedio Respuesta</p>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Distribución</h6>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h3>{{ stats.total_criticas }}</h3>
-                    <p>🚨 Críticas Totales</p>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <canvas id="distChart" height="160"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Gráfico Simple -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5>Resumen Visual</h5>
-        </div>
-        <div class="card-body">
-            <canvas id="statsChart" width="400" height="200"></canvas>
+    <!-- ── Filters ── -->
+    <div class="filter-bar mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="fw-semibold" style="font-size:0.88rem;"><i class="bi bi-funnel me-1 text-primary"></i>Filtros:</span>
+            </div>
+            <div class="col-sm-auto">
+                <select class="form-select form-select-sm" id="filterCat" style="min-width:150px;">
+                    <option value="">Todas las categorías</option>
+                    <option value="A">🚨 Categoría A — Crítica</option>
+                    <option value="B">⚠️ Categoría B — Leve</option>
+                </select>
+            </div>
+            <div class="col-sm-auto">
+                <select class="form-select form-select-sm" id="filterStatus" style="min-width:150px;">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">⏳ Pendiente</option>
+                    <option value="Resuelto">✅ Resuelto</option>
+                </select>
+            </div>
+            <div class="col-sm">
+                <input type="text" class="form-control form-control-sm" id="filterSearch"
+                       placeholder="Buscar por título..." style="max-width:240px;">
+            </div>
+            <div class="col-auto ms-auto">
+                <span class="text-muted" style="font-size:0.8rem;" id="rowCount"></span>
+            </div>
         </div>
     </div>
-    
-    <!-- Tabla con filtro Críticas (Tarea 2) -->
+
+    <!-- ── Incidents Table ── -->
     <div class="card">
-        <div class="card-header">
-            <h5>Incidencias Recientes</h5>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-semibold"><i class="bi bi-table me-2 text-primary"></i>Registro de Incidencias</h6>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                {{ incidencias | length }} total
+            </span>
         </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Categoría</th>
-                        <th>Fecha/Hora</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for inc in incidencias %}
-                    <tr class="{% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}table-danger{% endif %}">
-                        <td>{{ inc['id'] }}</td>
-                        <td>{{ inc['titulo'] }}</td>
-                        <td><strong>{{ inc['categoria'] }}</strong></td>
-                        <td>{{ inc['fecha'] }}</td>
-                        <td>
-                            <span class="badge {{ 'bg-success' if inc['estado'] == 'Resuelto' else 'bg-warning text-dark' }}">
-                                {{ inc['estado'] }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if inc['estado'] == 'Pendiente' %}
-                            <a href="{{ url_for('resolve_incidencia', id=inc['id']) }}" class="btn btn-sm btn-outline-success">Resolver</a>
-                            {% else %}
-                            <span class="text-muted small">Finalizado</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table incidents-table mb-0" id="incidenciasTable">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Título</th>
+                            <th style="width:110px;">Categoría</th>
+                            <th style="width:160px;">Fecha</th>
+                            <th style="width:110px;">Estado</th>
+                            <th style="width:100px;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for inc in incidencias %}
+                        <tr class="{% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}row-critical{% endif %}"
+                            data-cat="{{ inc['categoria'] }}"
+                            data-status="{{ inc['estado'] }}"
+                            data-title="{{ inc['titulo'] | lower }}">
+                            <td class="text-muted fw-semibold">{{ inc['id'] }}</td>
+                            <td>
+                                <span class="fw-medium">{{ inc['titulo'] }}</span>
+                                {% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}
+                                    <span class="ms-1" title="Crítica pendiente" style="font-size:0.75rem;">🔴</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if inc['categoria'] == 'A' %}
+                                    <span class="badge-cat-a">🚨 Crítica (A)</span>
+                                {% else %}
+                                    <span class="badge-cat-b">⚠️ Leve (B)</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted" style="font-size:0.82rem;">{{ inc['fecha'] }}</td>
+                            <td>
+                                {% if inc['estado'] == 'Resuelto' %}
+                                    <span class="badge-resolved"><i class="bi bi-check-circle me-1"></i>Resuelto</span>
+                                {% else %}
+                                    <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if inc['estado'] == 'Pendiente' %}
+                                    <a href="{{ url_for('resolve_incidencia', id=inc['id']) }}"
+                                       class="btn-resolve"
+                                       onclick="return confirm('¿Marcar incidencia #{{ inc[\'id\'] }} como resuelta?')">
+                                        <i class="bi bi-check2 me-1"></i>Resolver
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted" style="font-size:0.78rem;">
+                                        <i class="bi bi-check-all me-1"></i>Finalizado
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div><i class="bi bi-inbox"></i></div>
+                                    <p class="mb-2 fw-semibold">No hay incidencias registradas</p>
+                                    <a href="{{ url_for('form_incidencia') }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-plus me-1"></i>Registrar primera incidencia
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    
-    <a href="{{ url_for('form_incidencia') }}" class="btn btn-success mt-3">+ Nueva Incidencia</a>
-</body>
-</html>
 
+</div><!-- /container -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    const ctx = document.getElementById('statsChart').getContext('2d');
-    const statsChart = new Chart(ctx, {
+(function () {
+    'use strict';
+
+    // ── Bar chart ──
+    const barCtx = document.getElementById('statsChart').getContext('2d');
+    new Chart(barCtx, {
         type: 'bar',
         data: {
-            labels: ['Pendientes Hoy', 'Tiempo Promedio (h)', 'Críticas Totales'],
+            labels: ['Pendientes Hoy', 'Tiempo Prom. (h)', 'Críticas Totales', 'Resueltas'],
             datasets: [{
-                label: 'Estadísticas',
-                data: [{{ stats.pendientes_hoy }}, {{ stats.tiempo_promedio_hrs }}, {{ stats.total_criticas }}],
+                label: 'Valor',
+                data: [
+                    {{ stats.pendientes_hoy }},
+                    {{ stats.tiempo_promedio_hrs }},
+                    {{ stats.total_criticas }},
+                    {{ incidencias | selectattr('estado', 'equalto', 'Resuelto') | list | length }}
+                ],
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(54, 162, 235, 0.2)'
+                    'rgba(220, 38, 38, 0.8)',
+                    'rgba(217, 119, 6, 0.8)',
+                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(22, 163, 74, 0.8)'
                 ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(54, 162, 235, 1)'
-                ],
-                borderWidth: 1
+                borderRadius: 6,
+                borderSkipped: false
             }]
         },
         options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } }
             }
         }
     });
+
+    // ── Donut chart ──
+    const totalA   = {{ stats.total_criticas }};
+    const totalAll = {{ incidencias | length }};
+    const totalB   = totalAll - totalA;
+    const distCtx  = document.getElementById('distChart').getContext('2d');
+    new Chart(distCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Crítica (A)', 'Leve (B)'],
+            datasets: [{
+                data: [totalA, totalB],
+                backgroundColor: ['rgba(220,38,38,0.85)', 'rgba(217,119,6,0.85)'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+            }
+        }
+    });
+
+    // ── Table filters ──
+    const filterCat    = document.getElementById('filterCat');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterSearch = document.getElementById('filterSearch');
+    const rowCount     = document.getElementById('rowCount');
+    const rows         = Array.from(document.querySelectorAll('#tableBody tr[data-cat]'));
+
+    function applyFilters() {
+        const cat    = filterCat.value;
+        const status = filterStatus.value;
+        const search = filterSearch.value.toLowerCase().trim();
+        let visible  = 0;
+
+        rows.forEach(function (row) {
+            const matchCat    = !cat    || row.dataset.cat    === cat;
+            const matchStatus = !status || row.dataset.status === status;
+            const matchSearch = !search || row.dataset.title.includes(search);
+            const show = matchCat && matchStatus && matchSearch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        rowCount.textContent = visible + ' de ' + rows.length + ' incidencias';
+    }
+
+    filterCat.addEventListener('change', applyFilters);
+    filterStatus.addEventListener('change', applyFilters);
+    filterSearch.addEventListener('input', applyFilters);
+    applyFilters();
+})();
 </script>
+{% endblock %}

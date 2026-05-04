@@ -1,72 +1,301 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Registro de Incidencia</title>
-</head>
-<body class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">📝 Registrar Nueva Incidencia</h3>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category=='error' else 'success' }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+{% extends "base.html" %}
+{% block title %}Nueva Incidencia — IncidenciaApp{% endblock %}
+
+{% block extra_styles %}
+    .form-section {
+        padding: 3rem 0 4rem;
+    }
+    .form-card {
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+    .form-card-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #fff;
+        padding: 1.5rem 1.75rem;
+    }
+    .form-card-header h4 {
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.2px;
+    }
+    .form-card-header p {
+        margin: 0.25rem 0 0;
+        opacity: 0.8;
+        font-size: 0.88rem;
+    }
+    .form-card-body {
+        background: #fff;
+        padding: 2rem 1.75rem;
+    }
+    .form-label {
+        font-weight: 500;
+        font-size: 0.88rem;
+        color: var(--text);
+        margin-bottom: 0.4rem;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        font-size: 0.92rem;
+        padding: 0.55rem 0.85rem;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger);
+    }
+    .char-counter {
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-align: right;
+        margin-top: 0.3rem;
+    }
+    .char-counter.warn  { color: var(--warning); }
+    .char-counter.ready { color: var(--success); }
+
+    /* Priority option cards */
+    .priority-options { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .priority-option { display: none; }
+    .priority-option + label {
+        flex: 1;
+        min-width: 160px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        font-size: 0.88rem;
+    }
+    .priority-option + label .opt-icon {
+        font-size: 1.4rem;
+        display: block;
+        margin-bottom: 0.35rem;
+    }
+    .priority-option + label .opt-title { font-weight: 600; display: block; }
+    .priority-option + label .opt-desc  { color: var(--muted); font-size: 0.8rem; }
+
+    /* Cat A — red */
+    #cat-a:checked + label {
+        border-color: #dc2626;
+        background: #fff5f5;
+    }
+    /* Cat B — yellow */
+    #cat-b:checked + label {
+        border-color: #d97706;
+        background: #fffbeb;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        color: #fff;
+        padding: 0.7rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-submit:hover { opacity: 0.92; transform: translateY(-1px); color: #fff; }
+    .btn-submit:active { transform: translateY(0); }
+
+    .step-indicator {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.75rem;
+    }
+    .step-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--border);
+    }
+    .step-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb" style="font-size:0.82rem;">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                        <li class="breadcrumb-item active">Nueva Incidencia</li>
+                    </ol>
+                </nav>
+
+                <div class="form-card">
+                    <!-- Header -->
+                    <div class="form-card-header">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:10px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+                                <i class="bi bi-pencil-square"></i>
+                            </div>
+                            <div>
+                                <h4>Registrar Nueva Incidencia</h4>
+                                <p>Completa todos los campos para garantizar la calidad del dato</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="form-card-body">
+
+                        <form action="{{ url_for('form_incidencia') }}" method="POST" id="incidenciaForm" novalidate>
+
+                            <!-- Título -->
+                            <div class="mb-4">
+                                <label for="titulo" class="form-label">
+                                    <i class="bi bi-type me-1 text-primary"></i>Título de la Incidencia
+                                </label>
+                                <input type="text" class="form-control" id="titulo" name="titulo" required
+                                       value="{{ form_data.titulo if form_data else '' }}"
+                                       placeholder="Ej: Error de conexión a base de datos">
+                                <div class="invalid-feedback">Por favor ingresa un título descriptivo.</div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-1 text-primary"></i>Correo Electrónico de Contacto
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       value="{{ form_data.email if form_data else '' }}"
+                                       placeholder="usuario@empresa.com">
+                                <div class="invalid-feedback">Ingresa un correo electrónico válido.</div>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div class="mb-4">
+                                <label class="form-label d-block">
+                                    <i class="bi bi-tag me-1 text-primary"></i>Prioridad / Categoría
+                                </label>
+                                <div class="priority-options">
+                                    <input type="radio" class="priority-option" id="cat-a" name="categoria" value="A"
+                                           {{ 'checked' if form_data and form_data.categoria == 'A' else '' }} required>
+                                    <label for="cat-a">
+                                        <span class="opt-icon">🚨</span>
+                                        <span class="opt-title">Categoría A — Crítica</span>
+                                        <span class="opt-desc">Operación afectada, requiere atención inmediata</span>
+                                    </label>
+
+                                    <input type="radio" class="priority-option" id="cat-b" name="categoria" value="B"
+                                           {{ 'checked' if form_data and form_data.categoria == 'B' else '' }}>
+                                    <label for="cat-b">
+                                        <span class="opt-icon">⚠️</span>
+                                        <span class="opt-title">Categoría B — Leve</span>
+                                        <span class="opt-desc">Fallo menor o sugerencia de mejora</span>
+                                    </label>
                                 </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+                                <div id="catError" class="text-danger mt-1" style="font-size:0.82rem; display:none;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>Selecciona una categoría.
+                                </div>
+                            </div>
 
-                    <form action="{{ url_for('form_incidencia') }}" method="POST">
-                        <div class="mb-3">
-                            <label for="titulo" class="form-label">Título de la Incidencia</label>
-                            <input type="text" class="form-control" id="titulo" name="titulo" required value="{{ form_data.titulo if form_data else '' }}" placeholder="Ej: Error de conexión">
-                        </div>
+                            <!-- Descripción -->
+                            <div class="mb-4">
+                                <label for="descripcion" class="form-label">
+                                    <i class="bi bi-card-text me-1 text-primary"></i>Descripción
+                                    <span class="text-muted fw-normal">(mínimo 10 caracteres)</span>
+                                </label>
+                                <textarea class="form-control" id="descripcion" name="descripcion"
+                                          rows="5" required minlength="10"
+                                          placeholder="Detalla lo ocurrido: cuándo empezó, qué sistemas están afectados, pasos para reproducirlo...">{{ form_data.descripcion if form_data else '' }}</textarea>
+                                <div class="char-counter" id="charCounter">0 / 10 mínimo</div>
+                                <div class="invalid-feedback">La descripción debe tener al menos 10 caracteres.</div>
+                            </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="email" name="email" required value="{{ form_data.email if form_data else '' }}" placeholder="usuario@ejemplo.com">
-                        </div>
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-submit">
+                                    <i class="bi bi-check-circle me-2"></i>Guardar Incidencia
+                                </button>
+                            </div>
 
-                        <div class="mb-3">
-                            <label for="categoria" class="form-label">Prioridad / Categoría</label>
-                            <select class="form-select" id="categoria" name="categoria" required>
-                                <option value="" selected disabled>Seleccione una opción...</option>
-                                <option value="A" {{ 'selected' if form_data and form_data.categoria == 'A' else '' }}>🚨 Crítica (A) - Operación Afectada</option>
-                                <option value="B" {{ 'selected' if form_data and form_data.categoria == 'B' else '' }}>⚠️ Leve (B) - Sugerencias o fallos menores</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="descripcion" class="form-label">Descripción <small class="text-muted">(Mínimo 10 caracteres)</small></label>
-                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4" required minlength="10" placeholder="Detalla lo ocurrido para evitar ruido semántico...">{{ form_data.descripcion if form_data else '' }}</textarea>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-success px-4">Guardar Incidencia</button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
+
+                <!-- Help note -->
+                <div class="mt-3 d-flex align-items-start gap-2 text-muted" style="font-size:0.82rem;">
+                    <i class="bi bi-info-circle mt-1 flex-shrink-0"></i>
+                    <span>
+                        Los datos se almacenan con marca de tiempo automática. Una descripción clara
+                        reduce el tiempo de resolución y evita ruido semántico en el sistema.
+                    </span>
+                </div>
+
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const descripcion = document.getElementById('descripcion').value.trim();
-            if (descripcion.length < 10) {
-                e.preventDefault();
-                alert('La descripción debe tener al menos 10 caracteres.');
-            }
+{% block extra_scripts %}
+<script>
+(function () {
+    'use strict';
+
+    const form        = document.getElementById('incidenciaForm');
+    const textarea    = document.getElementById('descripcion');
+    const counter     = document.getElementById('charCounter');
+    const catError    = document.getElementById('catError');
+
+    // ── Character counter ──
+    function updateCounter() {
+        const len = textarea.value.length;
+        counter.textContent = len + ' caracteres' + (len < 10 ? ' (mínimo 10)' : ' ✓');
+        counter.className = 'char-counter ' + (len === 0 ? '' : len < 10 ? 'warn' : 'ready');
+    }
+    textarea.addEventListener('input', updateCounter);
+    updateCounter();
+
+    // ── Form validation ──
+    form.addEventListener('submit', function (e) {
+        let valid = true;
+
+        // Descripción length
+        if (textarea.value.trim().length < 10) {
+            textarea.classList.add('is-invalid');
+            valid = false;
+        } else {
+            textarea.classList.remove('is-invalid');
+        }
+
+        // Categoría required
+        const catSelected = form.querySelector('input[name="categoria"]:checked');
+        if (!catSelected) {
+            catError.style.display = 'block';
+            valid = false;
+        } else {
+            catError.style.display = 'none';
+        }
+
+        // Bootstrap native validation
+        if (!form.checkValidity()) {
+            valid = false;
+        }
+        form.classList.add('was-validated');
+
+        if (!valid) e.preventDefault();
+    });
+
+    // Hide cat error on selection
+    document.querySelectorAll('input[name="categoria"]').forEach(function (r) {
+        r.addEventListener('change', function () {
+            catError.style.display = 'none';
         });
-    </script>
-</body>
-</html>
+    });
+})();
+</script>
+{% endblock %}
