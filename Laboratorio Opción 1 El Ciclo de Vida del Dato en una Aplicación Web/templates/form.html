@@ -1,50 +1,396 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Nueva Incidencia</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Incidencia · IncidenciasApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --primary-dark: #0a58ca;
+            --gradient-start: #0d6efd;
+            --gradient-end: #0dcaf0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        .navbar-custom {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-brand-text {
+            font-weight: 700;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 50%, #0dcaf0 100%);
+            padding: 2.5rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 40px;
+            background: #f0f4f8;
+            clip-path: ellipse(55% 100% at 50% 100%);
+        }
+        .page-header h1 { font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0; }
+        .page-header p  { color: rgba(255,255,255,0.8); margin: 0.4rem 0 0; font-size: 0.95rem; }
+
+        .form-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(13,110,253,0.1);
+            border: 1px solid rgba(13,110,253,0.08);
+            overflow: hidden;
+            margin-top: -1.5rem;
+        }
+        .form-card-header {
+            background: linear-gradient(135deg, #f8faff, #eef4ff);
+            border-bottom: 1px solid #e8eeff;
+            padding: 1.5rem 2rem;
+        }
+        .form-card-header h4 { font-weight: 700; color: #1a1a2e; margin: 0; font-size: 1.1rem; }
+        .form-card-body { padding: 2rem; }
+
+        .field-group { margin-bottom: 1.5rem; }
+        .field-label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #374151;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .field-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 0.3rem; }
+
+        .form-control, .form-select {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.93rem;
+            color: #1f2937;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+            background: #fff;
+            outline: none;
+        }
+        .form-control.is-invalid { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+        .form-control.is-valid   { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.1); }
+        .invalid-feedback { font-size: 0.8rem; color: #ef4444; }
+
+        .char-counter {
+            font-size: 0.78rem; color: #9ca3af;
+            text-align: right; margin-top: 0.3rem;
+            transition: color 0.2s;
+        }
+        .char-counter.ok   { color: #22c55e; }
+        .char-counter.warn { color: #f59e0b; }
+
+        .alert-custom {
+            border-radius: 12px; border: none;
+            padding: 1rem 1.25rem;
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            font-size: 0.9rem; margin-bottom: 1.25rem;
+        }
+        .alert-success-custom { background: #f0fdf4; color: #166534; border-left: 4px solid #22c55e; }
+        .alert-error-custom   { background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none; color: #fff;
+            padding: 0.75rem 2rem; border-radius: 50px;
+            font-weight: 700; font-size: 0.95rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(13,110,253,0.3);
+            cursor: pointer;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(13,110,253,0.4); color: #fff; }
+        .btn-submit:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+
+        .btn-back {
+            background: transparent; border: 1.5px solid #e5e7eb;
+            color: #6b7280; padding: 0.75rem 1.5rem; border-radius: 50px;
+            font-weight: 600; font-size: 0.95rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-back:hover { border-color: #9ca3af; color: #374151; background: #f9fafb; }
+
+        footer {
+            background: #1a1a2e; color: rgba(255,255,255,0.5);
+            padding: 1.5rem 0; font-size: 0.82rem;
+            text-align: center; margin-top: 3rem;
+        }
+        footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+        footer a:hover { color: #fff; }
+    </style>
 </head>
-<body class="container mt-5">
-    <h2>📝 Nueva Incidencia</h2>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category=='error' else 'success' }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom sticky-top py-2">
+        <div class="container">
+            <a href="/" class="navbar-brand-text text-decoration-none">
+                <i class="bi bi-shield-check me-2"></i>IncidenciasApp
+            </a>
+            <div class="d-flex gap-2">
+                <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <a href="/dashboard" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="bi bi-bar-chart-line me-1"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <a href="/" class="text-white text-decoration-none opacity-75" style="font-size:0.85rem;">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <i class="bi bi-chevron-right text-white opacity-50" style="font-size:0.75rem;"></i>
+                <span class="text-white" style="font-size:0.85rem;">Nueva Incidencia</span>
+            </div>
+            <h1><i class="bi bi-pencil-square me-2"></i>Nueva Incidencia</h1>
+            <p>Completa todos los campos para registrar la incidencia correctamente.</p>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container pb-5" style="margin-top: 1rem;">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert-custom {{ 'alert-success-custom' if category == 'success' else 'alert-error-custom' }} d-flex justify-content-between align-items-start">
+                            <div class="d-flex gap-2">
+                                <span>{{ '✅' if category == 'success' else '❌' }}</span>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close btn-close-sm ms-3 flex-shrink-0"
+                                    onclick="this.closest('.alert-custom').remove()" aria-label="Cerrar"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h4><i class="bi bi-file-earmark-text me-2 text-primary"></i>Datos de la Incidencia</h4>
+                        <p class="text-muted mb-0 mt-1" style="font-size:0.82rem;">
+                            Campos con <span class="text-danger">*</span> son obligatorios.
+                        </p>
+                    </div>
+                    <div class="form-card-body">
+                        <form method="POST" id="formAlt" novalidate>
+
+                            <!-- Título -->
+                            <div class="field-group">
+                                <label for="titulo" class="field-label">
+                                    <i class="bi bi-tag-fill text-primary"></i>
+                                    Título <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="titulo"
+                                       name="titulo"
+                                       required
+                                       minlength="5"
+                                       maxlength="100"
+                                       placeholder="Ej: Fallo en módulo de pagos"
+                                       aria-describedby="tituloHint">
+                                <div class="field-hint" id="tituloHint">
+                                    <i class="bi bi-info-circle me-1"></i>Resumen breve del problema (5–100 caracteres).
+                                </div>
+                                <div class="invalid-feedback">El título debe tener al menos 5 caracteres.</div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="field-group">
+                                <label for="descripcion" class="field-label">
+                                    <i class="bi bi-card-text text-primary"></i>
+                                    Descripción <span class="text-danger">*</span>
+                                    <small class="text-muted fw-normal ms-1">(mínimo 10 caracteres)</small>
+                                </label>
+                                <textarea class="form-control"
+                                          id="descripcion"
+                                          name="descripcion"
+                                          rows="5"
+                                          required
+                                          minlength="10"
+                                          maxlength="1000"
+                                          placeholder="Describe el problema con detalle: cuándo ocurrió, qué pasos lo reproducen, qué impacto tiene...">{{ form.descripcion if form else '' }}</textarea>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <div class="field-hint">
+                                        <i class="bi bi-info-circle me-1"></i>Sé preciso para evitar ruido semántico.
+                                    </div>
+                                    <div class="char-counter" id="charCount">0 / 1000</div>
+                                </div>
+                                <div class="invalid-feedback">La descripción debe tener al menos 10 caracteres.</div>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div class="field-group">
+                                <label for="categoria" class="field-label">
+                                    <i class="bi bi-flag-fill text-primary"></i>
+                                    Categoría <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="" disabled selected>Seleccionar prioridad...</option>
+                                    <option value="A" {% if form and form.categoria == 'A' %}selected{% endif %}>
+                                        🚨 A — Crítica (operación afectada)
+                                    </option>
+                                    <option value="B" {% if form and form.categoria == 'B' %}selected{% endif %}>
+                                        ⚠️ B — Leve (fallo menor o sugerencia)
+                                    </option>
+                                </select>
+                                <div class="field-hint mt-1">
+                                    <i class="bi bi-info-circle me-1"></i>Categoría A = alta prioridad, Categoría B = baja prioridad.
+                                </div>
+                                <div class="invalid-feedback">Selecciona una categoría.</div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="field-group">
+                                <label for="email" class="field-label">
+                                    <i class="bi bi-envelope-fill text-primary"></i>
+                                    Email del Reportante <span class="text-danger">*</span>
+                                </label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="email"
+                                       required
+                                       placeholder="usuario@empresa.com">
+                                <div class="field-hint mt-1">
+                                    <i class="bi bi-info-circle me-1"></i>Para notificaciones de seguimiento.
+                                </div>
+                                <div class="invalid-feedback">Ingresa un correo electrónico válido.</div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-3">
+                                <a href="/" class="btn-back">
+                                    <i class="bi bi-arrow-left"></i> Volver
+                                </a>
+                                <button type="submit" class="btn-submit" id="submitBtn">
+                                    <i class="bi bi-floppy-fill"></i> Registrar Incidencia
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    <form method="POST">
-        <div class="mb-3">
-            <label class="form-label">Título</label>
-            <input type="text" class="form-control" name="titulo" required>
+
+            </div>
         </div>
-        
-        <div class="mb-3">
-            <label class="form-label">Descripción <small>(mínimo 10 caracteres)</small></label>
-            <textarea class="form-control" name="descripcion" rows="4" required>{{ form.descripcion if form else '' }}</textarea>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <a href="/">IncidenciasApp</a> · Sistema de demostración del Ciclo de Vida del Dato
         </div>
-        
-        <div class="mb-3">
-            <label class="form-label">Categoría</label>
-            <select class="form-select" name="categoria" required>
-                <option value="">Seleccionar...</option>
-                <option value="A" {% if form and form.categoria == 'A' %}selected{% endif %}>🚨 A - Crítica</option>
-                <option value="B" {% if form and form.categoria == 'B' %}selected{% endif %}>⚠️ B - Leve</option>
-            </select>
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" name="email" required>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">💾 Registrar</button>
-        <a href="/" class="btn btn-secondary">← Volver</a>
-    </form>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ── Character counter ──
+        const textarea  = document.getElementById('descripcion');
+        const charCount = document.getElementById('charCount');
+
+        function updateCounter() {
+            const len = textarea.value.length;
+            charCount.textContent = len + ' / 1000';
+            charCount.className = 'char-counter';
+            if (len >= 10)  charCount.classList.add('ok');
+            if (len >= 900) charCount.classList.add('warn');
+        }
+        textarea.addEventListener('input', updateCounter);
+        updateCounter();
+
+        // ── Validation ──
+        const form      = document.getElementById('formAlt');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+
+            const titulo = document.getElementById('titulo');
+            if (!titulo.value.trim() || titulo.value.trim().length < 5) {
+                titulo.classList.add('is-invalid'); valid = false;
+            } else {
+                titulo.classList.remove('is-invalid'); titulo.classList.add('is-valid');
+            }
+
+            const desc = document.getElementById('descripcion');
+            if (!desc.value.trim() || desc.value.trim().length < 10) {
+                desc.classList.add('is-invalid'); valid = false;
+            } else {
+                desc.classList.remove('is-invalid'); desc.classList.add('is-valid');
+            }
+
+            const cat = document.getElementById('categoria');
+            if (!cat.value) {
+                cat.classList.add('is-invalid'); valid = false;
+            } else {
+                cat.classList.remove('is-invalid'); cat.classList.add('is-valid');
+            }
+
+            const email = document.getElementById('email');
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!re.test(email.value.trim())) {
+                email.classList.add('is-invalid'); valid = false;
+            } else {
+                email.classList.remove('is-invalid'); email.classList.add('is-valid');
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+            }
+        });
+
+        // Live validation
+        ['titulo', 'email', 'descripcion', 'categoria'].forEach(id => {
+            document.getElementById(id).addEventListener('blur', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

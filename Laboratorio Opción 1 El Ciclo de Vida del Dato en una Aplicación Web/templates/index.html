@@ -1,26 +1,527 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Registro de Incidencias</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro de Incidencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --primary-dark: #0a58ca;
+            --teal: #0dcaf0;
+            --gradient-start: #0d6efd;
+            --gradient-end: #0dcaf0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ── Navbar ── */
+        .navbar-custom {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            padding: 0.75rem 0;
+        }
+        .navbar-brand-text {
+            font-weight: 700;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 40%, #0dcaf0 100%);
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+        .hero p.lead {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.88);
+            max-width: 520px;
+            line-height: 1.7;
+        }
+        .hero-cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+        .btn-hero-primary {
+            background: #fff;
+            color: var(--primary-dark);
+            border: none;
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            color: var(--primary-dark);
+        }
+        .btn-hero-outline {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.7);
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.25s ease;
+        }
+        .btn-hero-outline:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #fff;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .hero-icon-wrap {
+            width: 220px;
+            height: 220px;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-14px); }
+        }
+
+        /* ── Stats strip ── */
+        .stats-strip {
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .stat-item {
+            padding: 1.25rem 1rem;
+            text-align: center;
+            border-right: 1px solid #e9ecef;
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.78rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        /* ── Feature cards ── */
+        .section-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+        .section-subtitle {
+            color: #6c757d;
+            font-size: 1.05rem;
+            max-width: 540px;
+            margin: 0 auto;
+        }
+        .feature-card {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(13,110,253,0.12);
+            border-color: transparent;
+        }
+        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .icon-blue   { background: #dbeafe; color: #1d4ed8; }
+        .icon-teal   { background: #ccfbf1; color: #0f766e; }
+        .icon-purple { background: #ede9fe; color: #7c3aed; }
+        .icon-orange { background: #ffedd5; color: #c2410c; }
+        .feature-card h5 {
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.6rem;
+        }
+        .feature-card p {
+            color: #6c757d;
+            font-size: 0.92rem;
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        /* ── Lifecycle section ── */
+        .lifecycle-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 5rem 0;
+        }
+        .lifecycle-step {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+        .step-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 20px rgba(13,110,253,0.4);
+        }
+        .step-connector {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            opacity: 0.4;
+            margin-top: -2rem;
+        }
+        .lifecycle-step h6 {
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #93c5fd;
+            margin-bottom: 0.4rem;
+        }
+        .lifecycle-step p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.6);
+            margin: 0;
+        }
+
+        /* ── CTA section ── */
+        .cta-section { background: #fff; padding: 5rem 0; }
+        .cta-card {
+            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            border-radius: 24px;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -20%;
+            width: 400px; height: 400px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .cta-card h2 { font-weight: 800; font-size: 2rem; }
+        .cta-card p  { color: rgba(255,255,255,0.85); font-size: 1.05rem; }
+
+        /* ── Footer ── */
+        footer {
+            background: #1a1a2e;
+            color: rgba(255,255,255,0.6);
+            padding: 2.5rem 0;
+            font-size: 0.88rem;
+        }
+        footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+        footer a:hover { color: #fff; }
+        .footer-brand { font-weight: 700; font-size: 1.1rem; color: #fff; }
+    </style>
 </head>
-<body class="container mt-5">
-    <div class="jumbotron bg-primary text-white p-5 rounded">
-        <h1>🔧 Registro de Incidencias Técnicas</h1>
-        <p class="lead">Sistema que demuestra el Ciclo de Vida del Dato</p>
-    </div>
-    
-    <div class="row mt-5">
-        <div class="col-md-6">
-            <a href="/form" class="btn btn-success btn-lg w-100 mb-3">
-                ➕ Nueva Incidencia
-            </a>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom sticky-top">
+        <div class="container">
+            <span class="navbar-brand-text">
+                <i class="bi bi-shield-check me-2"></i>IncidenciasApp
+            </span>
+            <div class="d-flex gap-2">
+                <a href="/form" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva
+                </a>
+                <a href="/dashboard" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="bi bi-bar-chart-line me-1"></i>Dashboard
+                </a>
+            </div>
         </div>
-        <div class="col-md-6">
-            <a href="/dashboard" class="btn btn-info btn-lg w-100 mb-3">
-                📊 Dashboard Gerencial
-            </a>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container position-relative">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <div class="hero-badge">
+                        <i class="bi bi-activity"></i> Ciclo de Vida del Dato
+                    </div>
+                    <h1>Gestión Inteligente<br>de Incidencias Técnicas</h1>
+                    <p class="lead">
+                        Registra, clasifica y resuelve incidencias con trazabilidad completa.
+                        Desde la captura del dato hasta el reporte gerencial en tiempo real.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="/form" class="btn-hero-primary">
+                            <i class="bi bi-plus-circle-fill"></i> Registrar Incidencia
+                        </a>
+                        <a href="/dashboard" class="btn-hero-outline">
+                            <i class="bi bi-bar-chart-line-fill"></i> Ver Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5 hero-visual d-none d-lg-flex">
+                    <div class="hero-icon-wrap">🛡️</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+        <div class="container">
+            <div class="row g-0">
+                <div class="col-6 col-md-3 stat-item">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Categorías</div>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Trazabilidad</div>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <div class="stat-number">RT</div>
+                    <div class="stat-label">Tiempo Real</div>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <div class="stat-number">KPI</div>
+                    <div class="stat-label">Métricas Clave</div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Features -->
+    <section class="py-5 mt-2">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">¿Qué ofrece el sistema?</h2>
+                <p class="section-subtitle mt-2">
+                    Una plataforma completa que demuestra el ciclo de vida del dato,
+                    desde la entrada hasta la generación de conocimiento.
+                </p>
+            </div>
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon icon-blue">
+                            <i class="bi bi-pencil-square"></i>
+                        </div>
+                        <h5>Captura de Datos</h5>
+                        <p>Formulario validado que garantiza la calidad del dato desde el origen, evitando ruido semántico.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon icon-teal">
+                            <i class="bi bi-database-check"></i>
+                        </div>
+                        <h5>Almacenamiento Íntegro</h5>
+                        <p>Persistencia en SQLite con restricciones de integridad, timestamps automáticos y categorización.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon icon-purple">
+                            <i class="bi bi-gear-wide-connected"></i>
+                        </div>
+                        <h5>Procesamiento</h5>
+                        <p>Transformación de estados (Pendiente → Resuelto) con registro de fecha y hora de resolución.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon icon-orange">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h5>Salida de Calidad</h5>
+                        <p>Dashboard gerencial con KPIs en tiempo real, gráficos y filtros para la toma de decisiones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lifecycle -->
+    <section class="lifecycle-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title text-white">El Ciclo de Vida del Dato</h2>
+                <p class="mt-2" style="color:rgba(255,255,255,0.6); font-size:1rem;">
+                    Cada incidencia recorre un flujo completo de transformación de dato a información.
+                </p>
+            </div>
+            <div class="row g-0 align-items-start">
+                <div class="col lifecycle-step">
+                    <div class="step-circle">📥</div>
+                    <h6>Entrada</h6>
+                    <p>Captura y validación del formulario</p>
+                </div>
+                <div class="col-auto d-none d-md-block step-connector mt-4"></div>
+                <div class="col lifecycle-step">
+                    <div class="step-circle">🗄️</div>
+                    <h6>Almacenamiento</h6>
+                    <p>Persistencia íntegra en base de datos</p>
+                </div>
+                <div class="col-auto d-none d-md-block step-connector mt-4"></div>
+                <div class="col lifecycle-step">
+                    <div class="step-circle">⚙️</div>
+                    <h6>Procesamiento</h6>
+                    <p>Clasificación y cambio de estado</p>
+                </div>
+                <div class="col-auto d-none d-md-block step-connector mt-4"></div>
+                <div class="col lifecycle-step">
+                    <div class="step-circle">📊</div>
+                    <h6>Análisis</h6>
+                    <p>Cálculo de KPIs y métricas</p>
+                </div>
+                <div class="col-auto d-none d-md-block step-connector mt-4"></div>
+                <div class="col lifecycle-step">
+                    <div class="step-circle">💡</div>
+                    <h6>Conocimiento</h6>
+                    <p>Decisiones basadas en datos</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <h2>¿Listo para comenzar?</h2>
+                <p class="mt-2 mb-4">Registra tu primera incidencia o explora el dashboard con los datos existentes.</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="/form" class="btn-hero-primary">
+                        <i class="bi bi-plus-circle-fill"></i> Nueva Incidencia
+                    </a>
+                    <a href="/dashboard" class="btn-hero-outline">
+                        <i class="bi bi-bar-chart-line-fill"></i> Ir al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="footer-brand mb-1">
+                        <i class="bi bi-shield-check me-2"></i>IncidenciasApp
+                    </div>
+                    <div>Sistema de demostración del Ciclo de Vida del Dato · Flask + SQLite</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/form" class="me-3">Nueva Incidencia</a>
+                    <a href="/dashboard">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
