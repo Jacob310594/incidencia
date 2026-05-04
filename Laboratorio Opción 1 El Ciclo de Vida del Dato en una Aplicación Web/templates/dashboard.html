@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Dashboard Gerencial</title>
+</head>
+<body class="container mt-5">
+    <h1>📊 Dashboard de Incidencias</h1>
+    
+    <!-- KPIs Oportunos -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h3 class="card-title">{{ stats.pendientes_hoy }}</h3>
+                    <p>🔴 Pendientes HOY</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h3>{{ stats.tiempo_promedio_hrs }}h</h3>
+                    <p>⏱️ Tiempo Promedio Respuesta</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h3>{{ stats.total_criticas }}</h3>
+                    <p>🚨 Críticas Totales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico Simple -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Resumen Visual</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="statsChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Tabla con filtro Críticas (Tarea 2) -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Incidencias Recientes</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Categoría</th>
+                        <th>Fecha/Hora</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inc in incidencias %}
+                    <tr class="{% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}table-danger{% endif %}">
+                        <td>{{ inc['id'] }}</td>
+                        <td>{{ inc['titulo'] }}</td>
+                        <td><strong>{{ inc['categoria'] }}</strong></td>
+                        <td>{{ inc['fecha'] }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-success' if inc['estado'] == 'Resuelto' else 'bg-warning text-dark' }}">
+                                {{ inc['estado'] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if inc['estado'] == 'Pendiente' %}
+                            <a href="{{ url_for('resolve_incidencia', id=inc['id']) }}" class="btn btn-sm btn-outline-success">Resolver</a>
+                            {% else %}
+                            <span class="text-muted small">Finalizado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <a href="{{ url_for('form_incidencia') }}" class="btn btn-success mt-3">+ Nueva Incidencia</a>
+</body>
+</html>
+
+<script>
+    const ctx = document.getElementById('statsChart').getContext('2d');
+    const statsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Pendientes Hoy', 'Tiempo Promedio (h)', 'Críticas Totales'],
+            datasets: [{
+                label: 'Estadísticas',
+                data: [{{ stats.pendientes_hoy }}, {{ stats.tiempo_promedio_hrs }}, {{ stats.total_criticas }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(54, 162, 235, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(54, 162, 235, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
