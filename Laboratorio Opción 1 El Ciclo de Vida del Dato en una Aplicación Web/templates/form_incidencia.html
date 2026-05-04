@@ -2,70 +2,688 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Registro de Incidencia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Incidencia · IncidenciasApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --primary-dark: #0a58ca;
+            --gradient-start: #0d6efd;
+            --gradient-end: #0dcaf0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar-custom {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-brand-text {
+            font-weight: 700;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 50%, #0dcaf0 100%);
+            padding: 2.5rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 40px;
+            background: #f0f4f8;
+            clip-path: ellipse(55% 100% at 50% 100%);
+        }
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+        .page-header p {
+            color: rgba(255,255,255,0.8);
+            margin: 0.4rem 0 0;
+            font-size: 0.95rem;
+        }
+
+        /* ── Progress steps ── */
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: 1.5rem;
+        }
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+        }
+        .step-pill.active {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.6);
+            color: #fff;
+        }
+        .step-pill.done {
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.9);
+        }
+        .step-arrow {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            margin: 0 0.25rem;
+        }
+
+        /* ── Form card ── */
+        .form-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(13,110,253,0.1);
+            border: 1px solid rgba(13,110,253,0.08);
+            overflow: hidden;
+            margin-top: -1.5rem;
+        }
+        .form-card-header {
+            background: linear-gradient(135deg, #f8faff, #eef4ff);
+            border-bottom: 1px solid #e8eeff;
+            padding: 1.5rem 2rem;
+        }
+        .form-card-header h4 {
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .form-card-body { padding: 2rem; }
+
+        /* ── Form fields ── */
+        .field-group { margin-bottom: 1.5rem; }
+        .field-label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #374151;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .field-label .label-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        .field-hint {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            margin-top: 0.3rem;
+        }
+        .form-control, .form-select {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.93rem;
+            color: #1f2937;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+            background: #fff;
+            outline: none;
+        }
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+        }
+        .form-control.is-valid, .form-select.is-valid {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+        }
+        .invalid-feedback { font-size: 0.8rem; color: #ef4444; }
+        .valid-feedback   { font-size: 0.8rem; color: #22c55e; }
+
+        /* ── Category cards ── */
+        .category-options { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .category-option { flex: 1; min-width: 160px; }
+        .category-option input[type="radio"] { display: none; }
+        .category-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+            display: block;
+        }
+        .category-card:hover { border-color: #93c5fd; background: #f0f7ff; }
+        .category-option input:checked + .category-card {
+            border-color: var(--primary);
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+        }
+        .cat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+        .cat-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #1f2937;
+            display: block;
+        }
+        .cat-desc {
+            font-size: 0.75rem;
+            color: #6b7280;
+            display: block;
+            margin-top: 0.15rem;
+        }
+        .cat-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 0.4rem;
+        }
+        .cat-badge-danger  { background: #fee2e2; color: #dc2626; }
+        .cat-badge-warning { background: #fef9c3; color: #ca8a04; }
+
+        /* ── Char counter ── */
+        .char-counter {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            text-align: right;
+            margin-top: 0.3rem;
+            transition: color 0.2s;
+        }
+        .char-counter.warn  { color: #f59e0b; }
+        .char-counter.ok    { color: #22c55e; }
+
+        /* ── Alert messages ── */
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .alert-custom .alert-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 0.05rem;
+        }
+        .alert-success-custom {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        .alert-error-custom {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* ── Buttons ── */
+        .btn-submit {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            color: #fff;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(13,110,253,0.3);
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13,110,253,0.4);
+            color: #fff;
+        }
+        .btn-submit:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .btn-cancel {
+            background: transparent;
+            border: 1.5px solid #e5e7eb;
+            color: #6b7280;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-cancel:hover {
+            border-color: #9ca3af;
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        /* ── Sidebar tip ── */
+        .tip-card {
+            background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            padding: 1.25rem;
+        }
+        .tip-card h6 {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        .tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+            font-size: 0.82rem;
+            color: #374151;
+        }
+        .tip-item:last-child { margin-bottom: 0; }
+        .tip-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #3b82f6;
+            flex-shrink: 0;
+            margin-top: 0.35rem;
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: #1a1a2e;
+            color: rgba(255,255,255,0.5);
+            padding: 1.5rem 0;
+            font-size: 0.82rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+        footer a:hover { color: #fff; }
+    </style>
 </head>
-<body class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">📝 Registrar Nueva Incidencia</h3>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom sticky-top py-2">
+        <div class="container">
+            <a href="/" class="navbar-brand-text text-decoration-none">
+                <i class="bi bi-shield-check me-2"></i>IncidenciasApp
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <a href="/dashboard" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="bi bi-bar-chart-line me-1"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <a href="/" class="text-white text-decoration-none opacity-75" style="font-size:0.85rem;">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <i class="bi bi-chevron-right text-white opacity-50" style="font-size:0.75rem;"></i>
+                <span class="text-white" style="font-size:0.85rem;">Nueva Incidencia</span>
+            </div>
+            <h1><i class="bi bi-pencil-square me-2"></i>Registrar Nueva Incidencia</h1>
+            <p>Completa el formulario con información precisa para garantizar la calidad del dato.</p>
+            <!-- Progress steps -->
+            <div class="progress-steps mt-3">
+                <div class="step-pill active">
+                    <i class="bi bi-1-circle-fill"></i> Datos del Reporte
                 </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category=='error' else 'success' }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <form action="{{ url_for('form_incidencia') }}" method="POST">
-                        <div class="mb-3">
-                            <label for="titulo" class="form-label">Título de la Incidencia</label>
-                            <input type="text" class="form-control" id="titulo" name="titulo" required value="{{ form_data.titulo if form_data else '' }}" placeholder="Ej: Error de conexión">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="email" name="email" required value="{{ form_data.email if form_data else '' }}" placeholder="usuario@ejemplo.com">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="categoria" class="form-label">Prioridad / Categoría</label>
-                            <select class="form-select" id="categoria" name="categoria" required>
-                                <option value="" selected disabled>Seleccione una opción...</option>
-                                <option value="A" {{ 'selected' if form_data and form_data.categoria == 'A' else '' }}>🚨 Crítica (A) - Operación Afectada</option>
-                                <option value="B" {{ 'selected' if form_data and form_data.categoria == 'B' else '' }}>⚠️ Leve (B) - Sugerencias o fallos menores</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="descripcion" class="form-label">Descripción <small class="text-muted">(Mínimo 10 caracteres)</small></label>
-                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4" required minlength="10" placeholder="Detalla lo ocurrido para evitar ruido semántico...">{{ form_data.descripcion if form_data else '' }}</textarea>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-success px-4">Guardar Incidencia</button>
-                        </div>
-                    </form>
+                <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+                <div class="step-pill">
+                    <i class="bi bi-2-circle"></i> Almacenamiento
+                </div>
+                <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+                <div class="step-pill">
+                    <i class="bi bi-3-circle"></i> Confirmación
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Main content -->
+    <div class="container pb-5" style="margin-top: 1rem;">
+        <div class="row g-4 justify-content-center">
+
+            <!-- Form column -->
+            <div class="col-lg-8">
+
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert-custom {{ 'alert-success-custom' if category == 'success' else 'alert-error-custom' }} mb-4 d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-start gap-2">
+                                <span class="alert-icon">{{ '✅' if category == 'success' else '❌' }}</span>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close btn-close-sm ms-3 flex-shrink-0"
+                                    onclick="this.closest('.alert-custom').remove()"
+                                    aria-label="Cerrar"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h4><i class="bi bi-file-earmark-text me-2 text-primary"></i>Información de la Incidencia</h4>
+                        <p class="text-muted mb-0 mt-1" style="font-size:0.82rem;">
+                            Los campos marcados con <span class="text-danger">*</span> son obligatorios.
+                        </p>
+                    </div>
+                    <div class="form-card-body">
+                        <form action="{{ url_for('form_incidencia') }}" method="POST" id="incidenciaForm" novalidate>
+
+                            <!-- Título -->
+                            <div class="field-group">
+                                <label for="titulo" class="field-label">
+                                    <span class="label-icon"><i class="bi bi-tag-fill"></i></span>
+                                    Título de la Incidencia <span class="text-danger ms-1">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="titulo"
+                                       name="titulo"
+                                       required
+                                       minlength="5"
+                                       maxlength="100"
+                                       autocomplete="off"
+                                       value="{{ form_data.titulo if form_data else '' }}"
+                                       placeholder="Ej: Error de conexión a base de datos en producción"
+                                       aria-describedby="tituloHelp">
+                                <div class="field-hint" id="tituloHelp">
+                                    <i class="bi bi-info-circle me-1"></i>Describe brevemente el problema (5–100 caracteres).
+                                </div>
+                                <div class="invalid-feedback">El título debe tener al menos 5 caracteres.</div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="field-group">
+                                <label for="email" class="field-label">
+                                    <span class="label-icon"><i class="bi bi-envelope-fill"></i></span>
+                                    Correo Electrónico del Reportante <span class="text-danger ms-1">*</span>
+                                </label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="email"
+                                       required
+                                       value="{{ form_data.email if form_data else '' }}"
+                                       placeholder="usuario@empresa.com"
+                                       aria-describedby="emailHelp">
+                                <div class="field-hint" id="emailHelp">
+                                    <i class="bi bi-info-circle me-1"></i>Se usará para notificaciones de seguimiento.
+                                </div>
+                                <div class="invalid-feedback">Ingresa un correo electrónico válido.</div>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div class="field-group">
+                                <label class="field-label">
+                                    <span class="label-icon"><i class="bi bi-flag-fill"></i></span>
+                                    Prioridad / Categoría <span class="text-danger ms-1">*</span>
+                                </label>
+                                <div class="category-options" role="radiogroup" aria-label="Selecciona la prioridad">
+                                    <div class="category-option">
+                                        <input type="radio" id="catA" name="categoria" value="A"
+                                               {{ 'checked' if form_data and form_data.categoria == 'A' else '' }} required>
+                                        <label class="category-card" for="catA">
+                                            <span class="cat-icon">🚨</span>
+                                            <span class="cat-title">Categoría A</span>
+                                            <span class="cat-desc">Operación afectada, impacto crítico</span>
+                                            <span class="cat-badge cat-badge-danger">CRÍTICA</span>
+                                        </label>
+                                    </div>
+                                    <div class="category-option">
+                                        <input type="radio" id="catB" name="categoria" value="B"
+                                               {{ 'checked' if form_data and form_data.categoria == 'B' else '' }}>
+                                        <label class="category-card" for="catB">
+                                            <span class="cat-icon">⚠️</span>
+                                            <span class="cat-title">Categoría B</span>
+                                            <span class="cat-desc">Fallo menor o sugerencia de mejora</span>
+                                            <span class="cat-badge cat-badge-warning">LEVE</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="field-hint mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>La categoría determina la prioridad de atención.
+                                </div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="field-group">
+                                <label for="descripcion" class="field-label">
+                                    <span class="label-icon"><i class="bi bi-card-text"></i></span>
+                                    Descripción Detallada <span class="text-danger ms-1">*</span>
+                                </label>
+                                <textarea class="form-control"
+                                          id="descripcion"
+                                          name="descripcion"
+                                          rows="5"
+                                          required
+                                          minlength="10"
+                                          maxlength="1000"
+                                          placeholder="Describe con detalle lo ocurrido: cuándo sucedió, qué pasos llevaron al error, qué impacto tiene y cualquier mensaje de error relevante..."
+                                          aria-describedby="descripcionHelp charCount">{{ form_data.descripcion if form_data else '' }}</textarea>
+                                <div class="d-flex justify-content-between align-items-start mt-1">
+                                    <div class="field-hint" id="descripcionHelp">
+                                        <i class="bi bi-info-circle me-1"></i>Mínimo 10 caracteres. Evita información vaga o redundante.
+                                    </div>
+                                    <div class="char-counter" id="charCount">0 / 1000</div>
+                                </div>
+                                <div class="invalid-feedback">La descripción debe tener al menos 10 caracteres.</div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-3">
+                                <a href="{{ url_for('dashboard') }}" class="btn-cancel">
+                                    <i class="bi bi-x-circle"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn-submit" id="submitBtn">
+                                    <i class="bi bi-cloud-upload-fill"></i> Guardar Incidencia
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="tip-card mb-3">
+                    <h6><i class="bi bi-lightbulb-fill me-2"></i>Consejos para un buen reporte</h6>
+                    <div class="tip-item">
+                        <div class="tip-dot"></div>
+                        <span>Sé específico: indica el módulo o sistema afectado.</span>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-dot"></div>
+                        <span>Incluye el mensaje de error exacto si lo hay.</span>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-dot"></div>
+                        <span>Menciona la hora aproximada en que ocurrió.</span>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-dot"></div>
+                        <span>Indica si el problema es reproducible o intermitente.</span>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-dot"></div>
+                        <span>Evita información vaga como "no funciona".</span>
+                    </div>
+                </div>
+
+                <div class="tip-card" style="background: linear-gradient(135deg,#fff7ed,#fef3c7); border-color:#fde68a;">
+                    <h6 style="color:#92400e;"><i class="bi bi-shield-exclamation me-2"></i>Categorías de Prioridad</h6>
+                    <div class="tip-item">
+                        <span class="cat-badge cat-badge-danger me-2">A</span>
+                        <span style="font-size:0.8rem;">Sistema caído, pérdida de datos, impacto en producción.</span>
+                    </div>
+                    <div class="tip-item mt-2">
+                        <span class="cat-badge cat-badge-warning me-2">B</span>
+                        <span style="font-size:0.8rem;">Errores menores, mejoras de UX, problemas no críticos.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <a href="/">IncidenciasApp</a> · Sistema de demostración del Ciclo de Vida del Dato
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const descripcion = document.getElementById('descripcion').value.trim();
-            if (descripcion.length < 10) {
-                e.preventDefault();
-                alert('La descripción debe tener al menos 10 caracteres.');
+        // ── Character counter ──
+        const textarea   = document.getElementById('descripcion');
+        const charCount  = document.getElementById('charCount');
+
+        function updateCounter() {
+            const len = textarea.value.length;
+            charCount.textContent = len + ' / 1000';
+            charCount.className = 'char-counter';
+            if (len >= 10)   charCount.classList.add('ok');
+            if (len >= 900)  charCount.classList.add('warn');
+        }
+        textarea.addEventListener('input', updateCounter);
+        updateCounter();
+
+        // ── Client-side validation ──
+        const form      = document.getElementById('incidenciaForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+
+            // Título
+            const titulo = document.getElementById('titulo');
+            if (!titulo.value.trim() || titulo.value.trim().length < 5) {
+                titulo.classList.add('is-invalid');
+                valid = false;
+            } else {
+                titulo.classList.remove('is-invalid');
+                titulo.classList.add('is-valid');
             }
+
+            // Email
+            const email = document.getElementById('email');
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(email.value.trim())) {
+                email.classList.add('is-invalid');
+                valid = false;
+            } else {
+                email.classList.remove('is-invalid');
+                email.classList.add('is-valid');
+            }
+
+            // Categoría
+            const catSelected = document.querySelector('input[name="categoria"]:checked');
+            if (!catSelected) {
+                document.querySelectorAll('.category-card').forEach(c => c.style.borderColor = '#ef4444');
+                valid = false;
+            }
+
+            // Descripción
+            const desc = document.getElementById('descripcion');
+            if (!desc.value.trim() || desc.value.trim().length < 10) {
+                desc.classList.add('is-invalid');
+                valid = false;
+            } else {
+                desc.classList.remove('is-invalid');
+                desc.classList.add('is-valid');
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+            }
+        });
+
+        // ── Live field validation ──
+        document.getElementById('titulo').addEventListener('blur', function() {
+            if (this.value.trim().length >= 5) {
+                this.classList.remove('is-invalid'); this.classList.add('is-valid');
+            } else if (this.value.trim().length > 0) {
+                this.classList.remove('is-valid'); this.classList.add('is-invalid');
+            }
+        });
+
+        document.getElementById('email').addEventListener('blur', function() {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (re.test(this.value.trim())) {
+                this.classList.remove('is-invalid'); this.classList.add('is-valid');
+            } else if (this.value.trim().length > 0) {
+                this.classList.remove('is-valid'); this.classList.add('is-invalid');
+            }
+        });
+
+        // Reset category border on selection
+        document.querySelectorAll('input[name="categoria"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.category-card').forEach(c => c.style.borderColor = '');
+            });
         });
     </script>
 </body>

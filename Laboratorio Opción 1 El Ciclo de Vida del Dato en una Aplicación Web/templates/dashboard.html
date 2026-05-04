@@ -1,126 +1,786 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Dashboard Gerencial</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · IncidenciasApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --primary-dark: #0a58ca;
+            --gradient-start: #0d6efd;
+            --gradient-end: #0dcaf0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar-custom {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+        .navbar-brand-text {
+            font-weight: 700;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0d6efd 100%);
+            padding: 2.5rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 300px; height: 300px;
+            background: rgba(13,110,253,0.15);
+            border-radius: 50%;
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 40px;
+            background: #f0f4f8;
+            clip-path: ellipse(55% 100% at 50% 100%);
+        }
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+        .page-header p {
+            color: rgba(255,255,255,0.7);
+            margin: 0.4rem 0 0;
+            font-size: 0.9rem;
+        }
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(34,197,94,0.2);
+            border: 1px solid rgba(34,197,94,0.4);
+            color: #86efac;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .live-dot {
+            width: 7px; height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ── KPI cards ── */
+        .kpi-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .kpi-danger::before  { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .kpi-warning::before { background: linear-gradient(90deg, #f59e0b, #eab308); }
+        .kpi-primary::before { background: linear-gradient(90deg, #0d6efd, #0dcaf0); }
+        .kpi-success::before { background: linear-gradient(90deg, #22c55e, #10b981); }
+
+        .kpi-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        .kpi-icon-danger  { background: #fee2e2; color: #dc2626; }
+        .kpi-icon-warning { background: #fef9c3; color: #ca8a04; }
+        .kpi-icon-primary { background: #dbeafe; color: #1d4ed8; }
+        .kpi-icon-success { background: #dcfce7; color: #16a34a; }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #1a1a2e;
+        }
+        .kpi-label {
+            font-size: 0.82rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-top: 0.3rem;
+        }
+        .kpi-trend {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* ── Chart card ── */
+        .chart-card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+        .chart-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chart-card-header h5 {
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+            font-size: 1rem;
+        }
+        .chart-card-body { padding: 1.5rem; }
+
+        /* ── Filters & search ── */
+        .filter-bar {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e9ecef;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .filter-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fafb;
+            color: #6b7280;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+            color: var(--primary);
+        }
+        .filter-btn.active-danger {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .filter-btn.active-success {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+        .search-input {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 50px;
+            padding: 0.4rem 1rem 0.4rem 2.25rem;
+            font-size: 0.85rem;
+            background: #f9fafb;
+            color: #374151;
+            transition: all 0.2s ease;
+            min-width: 200px;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+            background: #fff;
+            outline: none;
+        }
+        .search-wrap { position: relative; }
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+
+        /* ── Table ── */
+        .table-card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+        .table-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .table-card-header h5 {
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+            font-size: 1rem;
+        }
+        .table-responsive { overflow-x: auto; }
+        .incidents-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .incidents-table thead th {
+            background: #f8fafc;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #e9ecef;
+            white-space: nowrap;
+        }
+        .incidents-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.15s ease;
+        }
+        .incidents-table tbody tr:last-child { border-bottom: none; }
+        .incidents-table tbody tr:hover { background: #f8fafc; }
+        .incidents-table tbody tr.row-critical { background: #fff5f5; }
+        .incidents-table tbody tr.row-critical:hover { background: #fee2e2; }
+        .incidents-table td {
+            padding: 0.9rem 1rem;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        /* ── Badges ── */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .badge-pending  { background: #fef9c3; color: #92400e; }
+        .badge-resolved { background: #dcfce7; color: #166534; }
+        .badge-cat-a    { background: #fee2e2; color: #dc2626; font-weight: 700; }
+        .badge-cat-b    { background: #fef9c3; color: #92400e; font-weight: 700; }
+
+        .incident-id {
+            font-weight: 700;
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+        .incident-title {
+            font-weight: 600;
+            color: #1f2937;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .incident-date {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
+        /* ── Action button ── */
+        .btn-resolve {
+            background: linear-gradient(135deg, #22c55e, #10b981);
+            border: none;
+            color: #fff;
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-resolve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+            color: #fff;
+        }
+        .resolved-text {
+            color: #9ca3af;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #9ca3af;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+        /* ── Print hint ── */
+        .print-btn {
+            background: transparent;
+            border: 1.5px solid #e5e7eb;
+            color: #6b7280;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        .print-btn:hover { border-color: #9ca3af; color: #374151; background: #f9fafb; }
+
+        /* ── Footer ── */
+        footer {
+            background: #1a1a2e;
+            color: rgba(255,255,255,0.5);
+            padding: 1.5rem 0;
+            font-size: 0.82rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+        footer a:hover { color: #fff; }
+
+        @media print {
+            .navbar-custom, .page-header, .filter-bar, .btn-resolve,
+            .print-btn, footer, .btn { display: none !important; }
+            body { background: #fff; }
+            .kpi-card, .chart-card, .table-card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
 </head>
-<body class="container mt-5">
-    <h1>📊 Dashboard de Incidencias</h1>
-    
-    <!-- KPIs Oportunos -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h3 class="card-title">{{ stats.pendientes_hoy }}</h3>
-                    <p>🔴 Pendientes HOY</p>
-                </div>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom sticky-top py-2">
+        <div class="container">
+            <a href="/" class="navbar-brand-text text-decoration-none">
+                <i class="bi bi-shield-check me-2"></i>IncidenciasApp
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <a href="/form" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva
+                </a>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h3>{{ stats.tiempo_promedio_hrs }}h</h3>
-                    <p>⏱️ Tiempo Promedio Respuesta</p>
+    </nav>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div class="container position-relative">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <a href="/" class="text-white text-decoration-none opacity-75" style="font-size:0.85rem;">
+                    <i class="bi bi-house me-1"></i>Inicio
+                </a>
+                <i class="bi bi-chevron-right text-white opacity-50" style="font-size:0.75rem;"></i>
+                <span class="text-white" style="font-size:0.85rem;">Dashboard</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <h1><i class="bi bi-bar-chart-line me-2"></i>Dashboard Gerencial</h1>
+                <div class="live-badge">
+                    <div class="live-dot"></div> En vivo
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h3>{{ stats.total_criticas }}</h3>
-                    <p>🚨 Críticas Totales</p>
-                </div>
-            </div>
+            <p>Métricas y estado de incidencias en tiempo real.</p>
         </div>
     </div>
 
-    <!-- Gráfico Simple -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5>Resumen Visual</h5>
-        </div>
-        <div class="card-body">
-            <canvas id="statsChart" width="400" height="200"></canvas>
-        </div>
-    </div>
-    
-    <!-- Tabla con filtro Críticas (Tarea 2) -->
-    <div class="card">
-        <div class="card-header">
-            <h5>Incidencias Recientes</h5>
-        </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Categoría</th>
-                        <th>Fecha/Hora</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for inc in incidencias %}
-                    <tr class="{% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}table-danger{% endif %}">
-                        <td>{{ inc['id'] }}</td>
-                        <td>{{ inc['titulo'] }}</td>
-                        <td><strong>{{ inc['categoria'] }}</strong></td>
-                        <td>{{ inc['fecha'] }}</td>
-                        <td>
-                            <span class="badge {{ 'bg-success' if inc['estado'] == 'Resuelto' else 'bg-warning text-dark' }}">
-                                {{ inc['estado'] }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if inc['estado'] == 'Pendiente' %}
-                            <a href="{{ url_for('resolve_incidencia', id=inc['id']) }}" class="btn btn-sm btn-outline-success">Resolver</a>
-                            {% else %}
-                            <span class="text-muted small">Finalizado</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <a href="{{ url_for('form_incidencia') }}" class="btn btn-success mt-3">+ Nueva Incidencia</a>
-</body>
-</html>
+    <div class="container pb-5" style="margin-top: 1rem;">
 
-<script>
-    const ctx = document.getElementById('statsChart').getContext('2d');
-    const statsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Pendientes Hoy', 'Tiempo Promedio (h)', 'Críticas Totales'],
-            datasets: [{
-                label: 'Estadísticas',
-                data: [{{ stats.pendientes_hoy }}, {{ stats.tiempo_promedio_hrs }}, {{ stats.total_criticas }}],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(54, 162, 235, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(54, 162, 235, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card kpi-danger">
+                    <div class="kpi-icon kpi-icon-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="kpi-value">{{ stats.pendientes_hoy }}</div>
+                    <div class="kpi-label">Pendientes Hoy</div>
+                    <div class="kpi-trend text-danger">
+                        <i class="bi bi-clock-fill me-1"></i>Requieren atención
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card kpi-warning">
+                    <div class="kpi-icon kpi-icon-warning">
+                        <i class="bi bi-stopwatch-fill"></i>
+                    </div>
+                    <div class="kpi-value">{{ stats.tiempo_promedio_hrs }}<span style="font-size:1rem;font-weight:500;color:#6c757d;">h</span></div>
+                    <div class="kpi-label">Tiempo Promedio Respuesta</div>
+                    <div class="kpi-trend text-warning">
+                        <i class="bi bi-graph-up me-1"></i>Incidencias resueltas
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card kpi-primary">
+                    <div class="kpi-icon kpi-icon-primary">
+                        <i class="bi bi-shield-exclamation"></i>
+                    </div>
+                    <div class="kpi-value">{{ stats.total_criticas }}</div>
+                    <div class="kpi-label">Críticas Totales (Cat. A)</div>
+                    <div class="kpi-trend text-primary">
+                        <i class="bi bi-flag-fill me-1"></i>Alta prioridad
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card kpi-success">
+                    <div class="kpi-icon kpi-icon-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="kpi-value" id="kpiResueltas">—</div>
+                    <div class="kpi-label">Total Resueltas</div>
+                    <div class="kpi-trend text-success">
+                        <i class="bi bi-check2-all me-1"></i>Ciclo completado
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="chart-card h-100">
+                    <div class="chart-card-header">
+                        <h5><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Resumen de Métricas</h5>
+                        <span class="badge bg-light text-secondary" style="font-size:0.75rem;">Actualizado ahora</span>
+                    </div>
+                    <div class="chart-card-body">
+                        <canvas id="statsChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-card h-100">
+                    <div class="chart-card-header">
+                        <h5><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Por Estado</h5>
+                    </div>
+                    <div class="chart-card-body d-flex align-items-center justify-content-center">
+                        <canvas id="statusChart" height="180"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar mb-3">
+            <div class="search-wrap">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar incidencia...">
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span style="font-size:0.8rem; color:#9ca3af; font-weight:600;">FILTRAR:</span>
+                <button class="filter-btn active" data-filter="all">Todas</button>
+                <button class="filter-btn" data-filter="pending" data-status="Pendiente">⏳ Pendientes</button>
+                <button class="filter-btn" data-filter="resolved" data-status="Resuelto">✅ Resueltas</button>
+                <button class="filter-btn" data-filter="catA" data-cat="A">🚨 Críticas (A)</button>
+                <button class="filter-btn" data-filter="catB" data-cat="B">⚠️ Leves (B)</button>
+            </div>
+            <div class="ms-auto d-flex gap-2">
+                <button class="print-btn" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <a href="/form" class="btn btn-sm btn-primary rounded-pill px-3">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva
+                </a>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-card-header">
+                <h5><i class="bi bi-table me-2 text-primary"></i>Registro de Incidencias</h5>
+                <span class="badge bg-light text-secondary" id="rowCount" style="font-size:0.8rem;">
+                    {{ incidencias|length }} registros
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="incidents-table" id="incidenciasTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Categoría</th>
+                            <th>Reportante</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for inc in incidencias %}
+                        <tr class="{{ 'row-critical' if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' else '' }}"
+                            data-status="{{ inc['estado'] }}"
+                            data-cat="{{ inc['categoria'] }}"
+                            data-title="{{ inc['titulo']|lower }}">
+                            <td><span class="incident-id">#{{ inc['id'] }}</span></td>
+                            <td>
+                                <div class="incident-title" title="{{ inc['titulo'] }}">{{ inc['titulo'] }}</div>
+                                {% if inc['categoria'] == 'A' and inc['estado'] == 'Pendiente' %}
+                                <small class="text-danger" style="font-size:0.72rem;">
+                                    <i class="bi bi-exclamation-circle me-1"></i>Requiere atención urgente
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge-status {{ 'badge-cat-a' if inc['categoria'] == 'A' else 'badge-cat-b' }}">
+                                    {{ '🚨' if inc['categoria'] == 'A' else '⚠️' }}
+                                    Cat. {{ inc['categoria'] }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-size:0.82rem; color:#374151;">
+                                    <i class="bi bi-person-circle me-1 text-muted"></i>{{ inc['email'] }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="incident-date">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ inc['fecha'][:16] if inc['fecha'] else '—' }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-status {{ 'badge-resolved' if inc['estado'] == 'Resuelto' else 'badge-pending' }}">
+                                    {{ '✅' if inc['estado'] == 'Resuelto' else '⏳' }}
+                                    {{ inc['estado'] }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if inc['estado'] == 'Pendiente' %}
+                                <a href="{{ url_for('resolve_incidencia', id=inc['id']) }}"
+                                   class="btn-resolve"
+                                   onclick="return confirm('¿Marcar incidencia #{{ inc['id'] }} como resuelta?')">
+                                    <i class="bi bi-check-circle"></i> Resolver
+                                </a>
+                                {% else %}
+                                <span class="resolved-text">
+                                    <i class="bi bi-check2-circle text-success"></i> Finalizado
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <p class="mb-2 fw-semibold">No hay incidencias registradas</p>
+                                    <a href="/form" class="btn btn-sm btn-primary rounded-pill px-3">
+                                        <i class="bi bi-plus-circle me-1"></i>Registrar primera incidencia
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <a href="/">IncidenciasApp</a> · Dashboard Gerencial · Datos en tiempo real
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ── Data from Flask ──
+        const pendientesHoy   = {{ stats.pendientes_hoy }};
+        const tiempoPromedio  = {{ stats.tiempo_promedio_hrs }};
+        const totalCriticas   = {{ stats.total_criticas }};
+
+        // ── Count resolved from table ──
+        const rows = document.querySelectorAll('#tableBody tr[data-status]');
+        let totalResueltas = 0;
+        let totalPendientes = 0;
+        rows.forEach(r => {
+            if (r.dataset.status === 'Resuelto') totalResueltas++;
+            else totalPendientes++;
+        });
+        document.getElementById('kpiResueltas').textContent = totalResueltas;
+
+        // ── Bar chart ──
+        const barCtx = document.getElementById('statsChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Pendientes Hoy', 'Tiempo Prom. (h)', 'Críticas Totales', 'Resueltas'],
+                datasets: [{
+                    label: 'Valor',
+                    data: [pendientesHoy, tiempoPromedio, totalCriticas, totalResueltas],
+                    backgroundColor: [
+                        'rgba(239,68,68,0.15)',
+                        'rgba(245,158,11,0.15)',
+                        'rgba(13,110,253,0.15)',
+                        'rgba(34,197,94,0.15)'
+                    ],
+                    borderColor: [
+                        'rgba(239,68,68,0.9)',
+                        'rgba(245,158,11,0.9)',
+                        'rgba(13,110,253,0.9)',
+                        'rgba(34,197,94,0.9)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleColor: '#fff',
+                        bodyColor: 'rgba(255,255,255,0.8)',
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { color: '#9ca3af', font: { size: 11 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6b7280', font: { size: 11 } }
+                    }
                 }
             }
+        });
+
+        // ── Doughnut chart ──
+        const pieCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendientes', 'Resueltas'],
+                datasets: [{
+                    data: [totalPendientes, totalResueltas],
+                    backgroundColor: ['rgba(245,158,11,0.85)', 'rgba(34,197,94,0.85)'],
+                    borderColor: ['#f59e0b', '#22c55e'],
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#6b7280', font: { size: 11 }, padding: 16 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleColor: '#fff',
+                        bodyColor: 'rgba(255,255,255,0.8)',
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+
+        // ── Filter buttons ──
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const tableRows  = document.querySelectorAll('#tableBody tr[data-status]');
+
+        function applyFilters() {
+            const activeBtn   = document.querySelector('.filter-btn.active, .filter-btn.active-danger, .filter-btn.active-success');
+            const searchTerm  = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filterType  = activeBtn ? activeBtn.dataset.filter : 'all';
+            let visible = 0;
+
+            tableRows.forEach(row => {
+                const status = row.dataset.status;
+                const cat    = row.dataset.cat;
+                const title  = row.dataset.title || '';
+
+                let show = true;
+                if (filterType === 'pending')  show = status === 'Pendiente';
+                if (filterType === 'resolved') show = status === 'Resuelto';
+                if (filterType === 'catA')     show = cat === 'A';
+                if (filterType === 'catB')     show = cat === 'B';
+                if (searchTerm && !title.includes(searchTerm)) show = false;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            document.getElementById('rowCount').textContent = visible + ' registros';
         }
-    });
-</script>
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(b => b.classList.remove('active', 'active-danger', 'active-success'));
+                const f = this.dataset.filter;
+                if (f === 'pending')  this.classList.add('active-danger');
+                else if (f === 'resolved') this.classList.add('active-success');
+                else this.classList.add('active');
+                applyFilters();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+    </script>
+</body>
+</html>
